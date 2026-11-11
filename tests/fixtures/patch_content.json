@@ -1,0 +1,1 @@
+{"cwd":"/p","hook_event_name":"PreToolUse","tool_name":"apply_patch","tool_input":{"patch":"*** Begin Patch\n*** Update File: src/a.js\n@@\n-x\n+const e = \".env\"\n*** End Patch"}}

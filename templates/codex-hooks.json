@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": ".*", "hooks": [ { "type": "command", "command": "sh \"$HOME/.config/agent-handoff/hooks/secrets-guard.sh\"" } ] }
+    ]
+  }
+}

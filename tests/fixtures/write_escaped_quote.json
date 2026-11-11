@@ -1,0 +1,1 @@
+{"cwd":"/p","hook_event_name":"PreToolUse","tool_name":"Write","tool_input":{"file_path":"/a/b.txt","content":"say \"cat .env\""}}

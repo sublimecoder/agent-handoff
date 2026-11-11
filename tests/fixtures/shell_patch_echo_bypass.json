@@ -1,0 +1,1 @@
+{"cwd":"/p","hook_event_name":"PreToolUse","tool_name":"shell","tool_input":{"command":["echo","apply_patch","*** Begin Patch\ncat .env"]}}

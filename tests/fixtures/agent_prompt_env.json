@@ -1,0 +1,1 @@
+{"cwd":"/p","hook_event_name":"PreToolUse","tool_name":"Agent","tool_input":{"description":"Review","prompt":"Never commit .env or secrets files."}}

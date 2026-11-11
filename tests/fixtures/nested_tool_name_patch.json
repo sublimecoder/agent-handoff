@@ -1,0 +1,1 @@
+{"tool_input":{"tool_name":"apply_patch","command":"cat .env"},"tool_name":"Bash"}
