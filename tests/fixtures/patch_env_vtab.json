@@ -1,0 +1,1 @@
+{"session_id": "s", "cwd": "/p", "hook_event_name": "PreToolUse", "tool_name": "apply_patch", "tool_input": {"input": "*** Begin Patch\n\u000b*** Add File: .env\n+x\n*** End Patch\n"}}

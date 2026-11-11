@@ -33,7 +33,7 @@ The `handoff` and `resume` skills and the secrets guard run for the agents the u
 4. **Windows.** Claude Code runs hook commands through Git Bash. If it cannot find bash, merge `{ "env": { "CLAUDE_CODE_GIT_BASH_PATH": "C:\\Program Files\\Git\\bin\\bash.exe" } }` into `settings.json` with the real path, keeping any `env` keys the user has. Without Git Bash a shell hook runs in PowerShell, where this script fails.
 
 5. **Tell the user the limits of the guard**, in your own words and without softening them:
-   - It is a guardrail, not a security boundary. Shell quoting and globbing, such as `cat .e""nv`, get past it. Codex's hooks docs say the same of hooks in general.
+   - It is a guardrail, not a security boundary. Shell globbing, such as `cat .e*`, gets past it, and so does any command that builds the name at run time. Codex's hooks docs say the same of hooks in general.
    - It has false positives. A command that only mentions a secrets file name, such as `echo .env >> .gitignore`, is blocked, and so is any command that mentions a key-like name, such as `jq .key package.json`, `node -e "console.log(obj.key)"` or `redis-cli GET session.key`. The agent stops and asks.
    - Real secrets still need a secrets manager, file permissions, and the agent's own sandbox and approval settings.
 

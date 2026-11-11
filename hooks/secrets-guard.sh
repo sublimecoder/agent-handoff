@@ -9,11 +9,13 @@
 # ending .pub or whose last path component ends .env.example is exempt; every
 # other token is checked. A .pem/.key/.p12/.pfx token passes only when a
 # source-code suffix follows (messages.key.ts). Commands are not shell-parsed
-# for exemptions: a key-like word such as jq .key or obj.key blocks.
-# shellcheck disable=SC1091
-. "$(dirname "$0")/lib.sh" 2>/dev/null || exit 0
-
-read_input
+# for exemptions: a key-like word such as jq .key or obj.key blocks. Each
+# checked value is read twice: split at shell punctuation, and again with
+# quotes and backslashes removed and one-character classes collapsed, because
+# the shell joins quoted pieces (.e""nv) and expands [v] to v. Globs with * or
+# ?, longer classes and names built at run time are not resolved. No helper file is sourced, so a missing
+# lib.sh cannot turn the guard off, and a failed scan blocks.
+INPUT=$(cat)
 
 # The JSON is walked structurally: escaped backslashes and quotes are masked
 # first, so splitting on '"' alternates structural text (odd parts) and string
@@ -47,12 +49,20 @@ tokens=$(printf '%s' "$INPUT" | tr '\n\r' '  ' | awk '
       n = split(v, a, "\n")
       for (i = 1; i <= n; i++) {
         line = a[i]
-        if (sub(/^\*\*\* (Add File|Update File|Delete File|Move to): /, "", line)) print line
+        if (sub(/^[^!-~]*\*\*\*[ \t]*(Add File|Update File|Delete File|Move to):[ \t]*/, "", line)) print line
       }
       return
     }
     n = split(v, a, "[][;|&<>()$`\"\047, \t\r\n]+")
     for (i = 1; i <= n; i++) if (a[i] != "") print a[i]
+    w = v
+    gsub(/\\\n/, "", w)
+    gsub("[\"\047\\\\]", "", w)
+    while (match(w, /\[.\]/)) w = substr(w, 1, RSTART - 1) substr(w, RSTART + 1, 1) substr(w, RSTART + 3)
+    if (w != v) {
+      n = split(w, a, "[][{}:;|&<>()$`, \t\r\n]+")
+      for (i = 1; i <= n; i++) if (a[i] != "") print a[i]
+    }
   }
   BEGIN {
     RS = "\001"
@@ -80,9 +90,12 @@ tokens=$(printf '%s' "$INPUT" | tr '\n\r' '  ' | awk '
       } else if (part[j + 1] ~ /^[ \t]*:/) {
         if (d > 0) ck[d] = decode(part[j])
       } else {
+        # Decode only what is used: skipped values (file content) can be large.
+        scoped = in_scope()
+        if (!scoped && !(d == 1 && ck[1] == "tool_name") && !(d > 0 && arr[d] && idx[d] == 0)) continue
         v = decode(part[j])
         if (d == 1 && ck[1] == "tool_name") tool = v
-        else if (in_scope()) {
+        else if (scoped) {
           nv++; val[nv] = v; path[nv] = ""
           for (i = 2; i <= d; i++) path[nv] = path[nv] (i > 2 ? "/" : "") (arr[i] ? "[]" : ck[i])
           ispatch[nv] = (d == 3 && ck[2] == "command" && arr[3] && idx[3] == 1 && first[3] == "apply_patch")
@@ -94,9 +107,13 @@ tokens=$(printf '%s' "$INPUT" | tr '\n\r' '  ' | awk '
       if ((tool ":" path[i]) in toolskip) continue
       emit(val[i], tool == "apply_patch" || ispatch[i])
     }
-  }')
+  }') || {
+  echo "secrets-guard: the scan failed, so this call is blocked. Run verify.sh, or ask the user." >&2
+  exit 2
+}
 
-match=$(printf '%s\n' "$tokens" | tr '[:upper:]' '[:lower:]' \
+[ -n "$tokens" ] || exit 0
+names=$(printf '%s\n' "$tokens" | tr '[:upper:]' '[:lower:]' \
   | awk '
       $0 == "" { next }
       /\.pub$/ { next }
@@ -106,7 +123,11 @@ match=$(printf '%s\n' "$tokens" | tr '[:upper:]' '[:lower:]' \
       /^(process|import\.meta)\.env(\.[a-z0-9_]+)*$/ { next }
       # a source file named after a key (messages.key.ts) is not a key
       { sub(/\.(pem|key)\.(ts|tsx|js|jsx|mjs|cjs|py|rb|go|rs|ex|exs)$/, "") }
-      { print }' \
+      { print }') || {
+  echo "secrets-guard: the scan failed, so this call is blocked. Run verify.sh, or ask the user." >&2
+  exit 2
+}
+match=$(printf '%s\n' "$names" \
   | grep -Eo '(^|[^a-z0-9_.-])\.env([^a-z0-9_]|$)|[a-z0-9_-]\.env([^a-z0-9_]|$)|(^|[^a-z0-9])id_(rsa|ed25519|ecdsa|dsa)|\.(pem|key|p12|pfx)([^a-z0-9_]|$)|(^|[^a-z0-9_])\.netrc([^a-z0-9_]|$)' \
   | head -n 1)
 [ -n "$match" ] || exit 0

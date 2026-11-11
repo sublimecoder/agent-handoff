@@ -35,6 +35,11 @@ test_guard_allows_normal() { guard_allows read_normal; guard_allows bash_grep_no
 test_guard_allows_write_content_mentioning_env() { guard_allows write_gitignore; }
 test_guard_ignores_cwd_env_dir() { guard_allows read_cwd_env_dir; }
 test_guard_blocks_apply_patch_env() { guard_blocks patch_env; }
+test_guard_blocks_indented_patch_header() { guard_blocks patch_env_indented; guard_blocks patch_env_tight; }
+test_guard_blocks_quoted_names() { for f in q_empty_quotes q_single_quotes q_quoted_tail q_bracket_class q_ansi_c q_backslash q_key_quoted; do guard_blocks "$f"; done; }
+test_guard_allows_quoted_plain() { guard_allows q_allows_quoted_plain; }
+test_guard_second_pass_keeps_exemptions() { for f in q_ok_process_env_index q_ok_json_env_example q_ok_json_pub q_ok_json_key_ts q_ok_bracket_env_name q_ok_jq_bracket q_ok_read_bracket_path; do guard_allows "$f"; done; }
+test_guard_blocks_backslash_newline_and_vtab_header() { guard_blocks q_backslash_newline; guard_blocks patch_env_vtab; }
 test_guard_allows_apply_patch_content() { guard_allows patch_content; }
 test_guard_blocks_named_env() { guard_blocks read_config_env; }
 test_guard_blocks_p12() { guard_blocks read_p12; }

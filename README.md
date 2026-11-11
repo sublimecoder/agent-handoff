@@ -35,7 +35,7 @@ To use a different folder, for example one inside a repo you already sync, run `
 
 The guard catches the common case: an agent reading, editing or printing `.env`, `id_rsa`, `*.pem` and similar files by name. It is not a security boundary. Codex's own hooks documentation says the same of hooks in general.
 
-- It can be evaded. Shell quoting and globbing, such as `cat .e""nv`, get past it.
+- It can be evaded. Shell globbing, such as `cat .e*`, gets past it, and so does any command that builds the name at run time.
 - It has false positives. A command that only mentions a secrets file name, such as `echo .env >> .gitignore`, is blocked, and so is any command that mentions a key-like name, such as `jq .key package.json`, `node -e "console.log(obj.key)"` or `redis-cli GET session.key`. When that happens the agent stops and asks you.
 
 When the guard blocks something, the agent stops and asks you. Keep real secrets out of reach in the first place: a secrets manager, file permissions, and your agent's own sandbox and approval settings.
@@ -68,7 +68,7 @@ When the guard blocks something, the agent stops and asks you. Keep real secrets
 sh tests/run.sh
 ```
 
-`tests/test_guard.sh` runs the hook on 50 test cases, including the false positives and bypasses listed above. `tests/test_install.sh` covers a fresh install, `--dry-run`, a second run, an existing settings file, an invalid settings file, symlinked settings, an existing skill of the same name, and `verify.sh` failing when the hook is missing.
+`tests/test_guard.sh` runs the hook on 55 tests, including the false positives and bypasses listed above. `tests/test_install.sh` covers a fresh install, `--dry-run`, a second run, an existing settings file, an invalid settings file, symlinked settings, an existing skill of the same name, and `verify.sh` failing when the hook is missing.
 
 ## The rest of the setup
 

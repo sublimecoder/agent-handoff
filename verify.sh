@@ -31,7 +31,7 @@ agent_present() { command -v "$1" > /dev/null 2>&1 || [ -d "$2" ]; }
 
 # ---- hooks-installed
 missing=
-for f in lib.sh secrets-guard.sh; do
+for f in secrets-guard.sh; do
   [ -f "$HOOKS/$f" ] || missing="$missing${missing:+, }$f"
 done
 if [ -n "$missing" ]; then fail hooks-installed "missing under $HOOKS: $missing"; else pass hooks-installed; fi

@@ -169,7 +169,6 @@ do_codex() {
 [ "$DRY" -eq 1 ] && echo "dry run: nothing will be written"
 
 echo "-- hooks ($CFG/hooks)"
-copy_file "$KIT/hooks/lib.sh" "$CFG/hooks/lib.sh"
 copy_file "$KIT/hooks/secrets-guard.sh" "$CFG/hooks/secrets-guard.sh"
 
 echo "-- handoffs folder"
